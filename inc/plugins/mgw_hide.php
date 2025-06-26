@@ -2,7 +2,7 @@
 /**
  * MGW Hide Content Plugin for MyBB 1.8.x
  * Author: Jakub Wilk <jakub.wilk@jakubwilk.pl>
- * Version: 1.0.17
+ * Version: 1.0.19
  * MyBB: 1.8.x
  * PHP: 8.1+
  * Description: Advanced content hiding plugin with customizable hide tags and group permissions
@@ -26,7 +26,7 @@ function mgw_hide_info()
         "website"       => "https://jakubwilk.pl",
         "author"        => "Jakub Wilk",
         "authorsite"    => "https://jakubwilk.pl",
-        "version"       => "1.0.17",
+        "version"       => "1.0.19",
         "guid"          => "5a8f2c3d9e1b7c4a6f8e2d1a9c5b7e3f",
         "codename"      => "mgw_hide",
         "compatibility" => "18*"
@@ -240,15 +240,24 @@ function mgw_hide_deactivate()
     $cache->update_usergroups();
 }
 
-// Hook into MyBB - use parse_message_start instead of postbit
+// Hook into MyBB - use parse_message_start and multiple search hooks
 $plugins->add_hook("parse_message_start", "mgw_hide_parse_message_start");
 $plugins->add_hook("search_results_post", "mgw_hide_search_results");
+$plugins->add_hook("search_results_postbit", "mgw_hide_search_results_postbit");
+$plugins->add_hook("search_results", "mgw_hide_search_results_general");
+$plugins->add_hook("postbit", "mgw_hide_postbit_hook");
 $plugins->add_hook("admin_config_menu", "mgw_hide_admin_config_menu");
 
 // Main parsing function for parse_message_start hook
 function mgw_hide_parse_message_start($message)
 {
     global $mybb;
+    
+    // Debug logging (remove in production)
+    if(isset($_GET['action']) && $_GET['action'] == 'results')
+    {
+        error_log("MGW Hide: parse_message_start called for search results");
+    }
     
     if(!isset($mybb->settings['mgw_hide_enabled']) || $mybb->settings['mgw_hide_enabled'] != 1)
     {
@@ -401,27 +410,105 @@ function mgw_hide_search_results($post)
 {
     global $mybb;
     
+    // Check if plugin is enabled
     if(!isset($mybb->settings['mgw_hide_enabled']) || $mybb->settings['mgw_hide_enabled'] != 1)
     {
         return $post;
     }
     
-    // Remove hidden content from search results
-    $hide_tags = mgw_hide_get_tags();
-    
-    foreach($hide_tags as $tag)
+    // Validate input parameter
+    if(!is_array($post))
     {
-        if(!$tag['is_active']) continue;
-        
-        $pattern = '/\[' . preg_quote($tag['tag_name'], '/') . '\](.*?)\[\/' . preg_quote($tag['tag_name'], '/') . '\]/is';
-        
-        if(!mgw_hide_user_can_see($tag))
-        {
-            $post['message'] = preg_replace($pattern, '[Hidden Content]', $post['message']);
-        }
+        // If $post is not an array, return as-is (possibly a string or other type)
+        return $post;
     }
     
+    // Check if message key exists
+    if(!isset($post['message']) || !is_string($post['message']))
+    {
+        return $post;
+    }
+    
+    // Get hide tags
+    $hide_tags = mgw_hide_get_tags();
+    if(empty($hide_tags))
+    {
+        return $post;
+    }
+    
+    // Process the message using our main parsing function
+    $post['message'] = mgw_hide_parse_message_start($post['message']);
+    
     return $post;
+}
+
+// Handle search results postbit (alternative hook)
+function mgw_hide_search_results_postbit(&$post)
+{
+    global $mybb;
+    
+    // Check if plugin is enabled
+    if(!isset($mybb->settings['mgw_hide_enabled']) || $mybb->settings['mgw_hide_enabled'] != 1)
+    {
+        return;
+    }
+    
+    // Check if message exists
+    if(!isset($post['message']) || !is_string($post['message']))
+    {
+        return;
+    }
+    
+    // Process the message using our main parsing function
+    $post['message'] = mgw_hide_parse_message_start($post['message']);
+}
+
+// Handle general search results (broader hook)
+function mgw_hide_search_results_general(&$results)
+{
+    global $mybb;
+    
+    // Check if plugin is enabled
+    if(!isset($mybb->settings['mgw_hide_enabled']) || $mybb->settings['mgw_hide_enabled'] != 1)
+    {
+        return;
+    }
+    
+    // Process each result if it's an array
+    if(is_array($results))
+    {
+        foreach($results as &$result)
+        {
+            if(is_array($result) && isset($result['message']))
+            {
+                $result['message'] = mgw_hide_parse_message_start($result['message']);
+            }
+        }
+    }
+}
+
+// Additional postbit hook for extra coverage
+function mgw_hide_postbit_hook(&$post)
+{
+    global $mybb;
+    
+    // Only process if in search context
+    if(!isset($_GET['action']) || $_GET['action'] != 'results')
+    {
+        return;
+    }
+    
+    // Check if plugin is enabled
+    if(!isset($mybb->settings['mgw_hide_enabled']) || $mybb->settings['mgw_hide_enabled'] != 1)
+    {
+        return;
+    }
+    
+    // Process message if exists
+    if(isset($post['message']))
+    {
+        $post['message'] = mgw_hide_parse_message_start($post['message']);
+    }
 }
 
 // Add admin permissions for mgw_hide module

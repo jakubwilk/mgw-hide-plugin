@@ -1,7 +1,7 @@
 # MGW Hide Content Plugin for MyBB 1.8.x
 
 **Author:** Jakub Wilk <jakub.wilk@jakubwilk.pl>  
-**Version:** 1.0.17  
+**Version:** 1.0.19  
 **Compatibility:** MyBB 1.8.x, PHP 8.1+
 
 Advanced content hiding plugin that allows hiding post content from specific user groups using customizable BBCode tags.
@@ -175,7 +175,20 @@ For support, bug reports, or feature requests:
 
 ## Changelog
 
-### 1.0.17 (Current)
+### 1.0.19 (Current)
+- 🔧 Fixed hide tags visible in search results
+- ✅ Added search_results_postbit hook for better coverage
+- ✅ Improved search results processing logic
+- ✅ Added live search test script for debugging
+- ✅ Enhanced search results validation
+
+### 1.0.18
+- 🐛 Fixed TypeError in search results hook 
+- ✅ Added input validation for search_results_post hook
+- ✅ Improved error handling for non-array parameters
+- ✅ Added debug test script for search functionality
+
+### 1.0.17
 - ✅ Added custom HTML messages per tag
 - ✅ New custom_message field in database
 - ✅ Enhanced admin panel with custom message editor
