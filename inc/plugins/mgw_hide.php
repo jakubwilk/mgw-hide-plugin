@@ -2,7 +2,7 @@
 /**
  * MGW Hide Content Plugin for MyBB 1.8.x
  * Author: Jakub Wilk <jakub.wilk@jakubwilk.pl>
- * Version: 1.0.19
+ * Version: 1.0.20
  * MyBB: 1.8.x
  * PHP: 8.1+
  * Description: Advanced content hiding plugin with customizable hide tags and group permissions
@@ -26,7 +26,7 @@ function mgw_hide_info()
         "website"       => "https://jakubwilk.pl",
         "author"        => "Jakub Wilk",
         "authorsite"    => "https://jakubwilk.pl",
-        "version"       => "1.0.19",
+        "version"       => "1.0.20",
         "guid"          => "5a8f2c3d9e1b7c4a6f8e2d1a9c5b7e3f",
         "codename"      => "mgw_hide",
         "compatibility" => "18*"
