@@ -1,7 +1,7 @@
 # MGW Hide Content Plugin for MyBB 1.8.x
 
 **Author:** Jakub Wilk <jakub.wilk@jakubwilk.pl>  
-**Version:** 1.0.8  
+**Version:** 1.0.17  
 **Compatibility:** MyBB 1.8.x, PHP 8.1+
 
 Advanced content hiding plugin that allows hiding post content from specific user groups using customizable BBCode tags.
@@ -175,7 +175,15 @@ For support, bug reports, or feature requests:
 
 ## Changelog
 
-### 1.0.8 (Current)
+### 1.0.17 (Current)
+- ✅ Added custom HTML messages per tag
+- ✅ New custom_message field in database
+- ✅ Enhanced admin panel with custom message editor
+- ✅ Full backward compatibility
+- ✅ Database schema update script
+- ✅ Rich HTML message examples and documentation
+
+### 1.0.8
 - ✅ Fixed MyCode parsing conflicts
 - ✅ Eliminated double-parsing issues
 - ✅ Simplified parser for better reliability

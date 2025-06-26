@@ -2,7 +2,7 @@
 /**
  * MGW Hide Content Plugin for MyBB 1.8.x
  * Author: Jakub Wilk <jakub.wilk@jakubwilk.pl>
- * Version: 1.0.15
+ * Version: 1.0.17
  * MyBB: 1.8.x
  * PHP: 8.1+
  * Description: Advanced content hiding plugin with customizable hide tags and group permissions
@@ -22,11 +22,11 @@ function mgw_hide_info()
 {
     return array(
         "name"          => "MGW Hide Content",
-        "description"   => "Advanced content hiding plugin that allows hiding post content from specific user groups using customizable BBCode tags.",
+        "description"   => "Advanced content hiding plugin that allows hiding post content from specific user groups using customizable BBCode tags with custom HTML messages.",
         "website"       => "https://jakubwilk.pl",
         "author"        => "Jakub Wilk",
         "authorsite"    => "https://jakubwilk.pl",
-        "version"       => "1.0.16",
+        "version"       => "1.0.17",
         "guid"          => "5a8f2c3d9e1b7c4a6f8e2d1a9c5b7e3f",
         "codename"      => "mgw_hide",
         "compatibility" => "18*"
@@ -44,6 +44,7 @@ function mgw_hide_install()
         tag_name varchar(50) NOT NULL,
         tag_description varchar(255) NOT NULL DEFAULT '',
         allowed_groups text NOT NULL,
+        custom_message text NOT NULL DEFAULT '',
         is_active tinyint(1) NOT NULL DEFAULT 1,
         created_at int(10) unsigned NOT NULL,
         updated_at int(10) unsigned NOT NULL,
@@ -56,6 +57,7 @@ function mgw_hide_install()
         'tag_name' => 'hide',
         'tag_description' => 'Default hide tag - content visible only to post author, administrators and super moderators',
         'allowed_groups' => '3,4', // Administrators and Super Moderators by default
+        'custom_message' => '',
         'is_active' => 1,
         'created_at' => time(),
         'updated_at' => time()
@@ -277,16 +279,27 @@ function mgw_hide_parse_message_start($message)
                 }
                 else
                 {
-                    // User cannot see content - show simple message
-                    $hide_message = isset($mybb->settings['mgw_hide_show_message']) ? $mybb->settings['mgw_hide_show_message'] : 'This content is hidden.';
+                    // User cannot see content - show custom message or default
+                    $custom_message = trim($tag['custom_message']);
                     
-                    if(!$mybb->user['uid'])
+                    if(!empty($custom_message))
                     {
-                        $replacement = '[🔒 Hidden Content - Please login to view]';
+                        // Use custom HTML message for this tag
+                        $replacement = $custom_message;
                     }
                     else
                     {
-                        $replacement = '[🔒 Hidden Content - ' . htmlspecialchars($hide_message) . ']';
+                        // Fall back to global setting
+                        $hide_message = isset($mybb->settings['mgw_hide_show_message']) ? $mybb->settings['mgw_hide_show_message'] : 'This content is hidden.';
+                        
+                        if(!$mybb->user['uid'])
+                        {
+                            $replacement = '[🔒 Hidden Content - Please login to view]';
+                        }
+                        else
+                        {
+                            $replacement = '[🔒 Hidden Content - ' . htmlspecialchars($hide_message) . ']';
+                        }
                     }
                 }
                 

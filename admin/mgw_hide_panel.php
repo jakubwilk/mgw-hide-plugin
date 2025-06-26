@@ -32,6 +32,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     {
         $tag_name = trim($_POST['tag_name']);
         $tag_description = trim($_POST['tag_description']);
+        $custom_message = trim($_POST['custom_message']);
         $allowed_groups = isset($_POST['allowed_groups']) ? $_POST['allowed_groups'] : array();
         
         if(empty($tag_name))
@@ -52,6 +53,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                 $new_tag = array(
                     'tag_name' => $db->escape_string($tag_name),
                     'tag_description' => $db->escape_string($tag_description),
+                    'custom_message' => $db->escape_string($custom_message),
                     'allowed_groups' => $db->escape_string(implode(',', array_filter($allowed_groups))),
                     'is_active' => 1,
                     'created_at' => time(),
@@ -74,11 +76,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     {
         $tag_id = intval($_POST['tag_id']);
         $tag_description = trim($_POST['tag_description']);
+        $custom_message = trim($_POST['custom_message']);
         $allowed_groups = isset($_POST['allowed_groups']) ? $_POST['allowed_groups'] : array();
         $is_active = isset($_POST['is_active']) ? 1 : 0;
         
         $update_array = array(
             'tag_description' => $db->escape_string($tag_description),
+            'custom_message' => $db->escape_string($custom_message),
             'allowed_groups' => $db->escape_string(implode(',', array_filter($allowed_groups))),
             'is_active' => $is_active,
             'updated_at' => time()
@@ -184,6 +188,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                 </div>
                 
                 <div class="form-group">
+                    <label>Custom Message (HTML allowed - leave empty to use global setting)</label>
+                    <textarea name="custom_message" rows="4" placeholder="e.g., &lt;div class='vip-message'&gt;&lt;strong&gt;VIP Content&lt;/strong&gt;&lt;br&gt;Subscribe to VIP to view this content!&lt;/div&gt;"></textarea>
+                    <small style="color: #666;">This HTML message will be shown to users who can't see the content. Leave empty to use the global message setting.</small>
+                </div>
+                
+                <div class="form-group">
                     <label>Allowed Groups (hold Ctrl/Cmd to select multiple)</label>
                     <select name="allowed_groups[]" multiple>
                         <?php
@@ -206,6 +216,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                     <tr>
                         <th>Tag Name</th>
                         <th>Description</th>
+                        <th>Custom Message</th>
                         <th>Allowed Groups</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -219,6 +230,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                         echo "<tr>";
                         echo "<td class='tag-name'>[{$tag['tag_name']}]</td>";
                         echo "<td>" . htmlspecialchars($tag['tag_description']) . "</td>";
+                        
+                        // Custom message column
+                        $custom_msg_preview = !empty($tag['custom_message']) ? 
+                            (strlen($tag['custom_message']) > 50 ? 
+                                htmlspecialchars(substr($tag['custom_message'], 0, 50)) . "..." : 
+                                htmlspecialchars($tag['custom_message'])) : 
+                            '<em style="color: #999;">Using global setting</em>';
+                        echo "<td>" . $custom_msg_preview . "</td>";
                         
                         // Get group names
                         $group_names = array();
@@ -273,6 +292,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                 <div class="form-group">
                     <label>Description</label>
                     <textarea name="tag_description"><?php echo htmlspecialchars($tag['tag_description']); ?></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Custom Message (HTML allowed - leave empty to use global setting)</label>
+                    <textarea name="custom_message" rows="4"><?php echo htmlspecialchars($tag['custom_message']); ?></textarea>
+                    <small style="color: #666;">This HTML message will be shown to users who can't see the content. Leave empty to use the global message setting.</small>
                 </div>
                 
                 <div class="form-group">
